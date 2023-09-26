@@ -10,6 +10,20 @@
 , wrapGAppsHook
 , xvfb-run
 }:
+let
+  sqlalchemy_1 = python3Packages.sqlalchemy.overridePythonAttrs (a: rec {
+    version = "1.4.49";
+    src = python3Packages.fetchPypi {
+      pname = "SQLAlchemy";
+      inherit version;
+      hash = "sha256-Bv8ly64ww5bEt3N0ZPKn/Deme32kCZk7GCsCTOyArtk=";
+    };
+    disabledTestPaths = [
+      "test/aaa_profiling"
+      "test/ext/mypy"
+    ];
+  });
+in
 python3Packages.buildPythonApplication rec {
   pname = "gourmand";
   version = "1.0.0";
@@ -61,7 +75,7 @@ python3Packages.buildPythonApplication rec {
     pillow
     pygobject3
     requests
-    sqlalchemy
+    sqlalchemy_1
     toml
     setuptools
     reportlab
