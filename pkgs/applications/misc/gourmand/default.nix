@@ -26,36 +26,27 @@ let
 in
 python3Packages.buildPythonApplication rec {
   pname = "gourmand";
-  version = "1.0.0";
+  version = "unstable-2023-01-27";
 
   src = fetchFromGitHub {
     owner = "GourmandRecipeManager";
     repo = "gourmand";
-    rev = version;
-    sha256 = "sha256-QNcVfsAxcqtM7VGuoCQL7ZD26+PwxwFW3EkA7FAE0Z0=";
+    rev = "19a544882b1aabb75d83494e3797e515909300bb";
+    sha256 = "sha256-zux8EfNSEUUNuPiXzWixxufCS5lUoGdpCtBuhgxQjEk=";
   };
 
   # https://github.com/NixOS/nixpkgs/issues/56943
   strictDeps = false;
 
-  patches = [
-    # Fix compatibility with Sqlalchemy 1.4, https://github.com/GourmandRecipeManager/gourmand/pull/80. This does not fix failing db tests.
-    (fetchpatch {
-      name = "fix-sqlalchemy-1.4-compat";
-      url = "https://github.com/GourmandRecipeManager/gourmand/commit/533bd247a0fd6a08c527bc27d1a303487c6ad144.patch";
-      sha256 = "sha256-C0joinwhy6pjmD2qlTm1wT7m4wXAvHbDMxw115kDDeU=";
-    })
-  ];
-
   postPatch = ''
     substituteInPlace setup.py \
-      --replace "beautifulsoup4==4.9.3" "beautifulsoup4" \
+      --replace "beautifulsoup4>=4.10.0" "beautifulsoup4" \
       --replace "lxml==4.6.3" "lxml" \
-      --replace "pillow==8.2.0" "pillow" \
+      --replace "pillow>=8.3.2" "pillow" \
       --replace "pygobject==3.40.1" "pygobject" \
-      --replace "requests==2.25.1"  "requests" \
-      --replace "sqlalchemy==1.3.22" "sqlalchemy" \
-      --replace "toml==0.10.2" "toml"
+      --replace "sqlalchemy==1.4.36" "sqlalchemy" \
+      --replace "toml==0.10.2" "toml" \
+      --replace "recipe-scrapers>=14.27.0" "recipe-scrapers"
   '';
 
   nativeBuildInputs = [
@@ -74,7 +65,7 @@ python3Packages.buildPythonApplication rec {
     lxml
     pillow
     pygobject3
-    requests
+    recipe-scrapers
     sqlalchemy_1
     toml
     setuptools
