@@ -12,6 +12,7 @@
   expiringdict,
   fetchPypi,
   fetchurl,
+  flit-core,
   geoip2,
   google-api-core,
   google-api-python-client,
@@ -38,6 +39,24 @@ let
     url = "https://raw.githubusercontent.com/domainaware/parsedmarc/77331b55c54cb3269205295bd57d0ab680638964/grafana/Grafana-DMARC_Reports.json";
     sha256 = "0wbihyqbb4ndjg79qs8088zgrcg88km8khjhv2474y7nzjzkf43i";
   };
+
+  # https://github.com/domainaware/parsedmarc/issues/464
+  msgraph-core-0 = msgraph-core.overridePythonAttrs (old: rec {
+    version = "0.2.2";
+
+    src = old.src.override {
+      rev = "v${version}";
+      hash = "sha256-eRRlG3GJX3WeKTNJVWgNTTHY56qiUGOlxtvEZ2xObLA=";
+    };
+
+    nativeBuildInputs = [ flit-core ];
+
+    propagatedBuildInputs = [ requests ];
+
+    disabledTestPaths = [ "tests/integration" ];
+
+    pythonImportsCheck = [ "msgraph.core" ];
+  });
 in
 buildPythonPackage rec {
   pname = "parsedmarc";
@@ -78,7 +97,7 @@ buildPythonPackage rec {
     kafka-python-ng
     lxml
     mailsuite
-    msgraph-core
+    msgraph-core-0
     publicsuffixlist
     requests
     tqdm
@@ -106,7 +125,5 @@ buildPythonPackage rec {
     license = licenses.asl20;
     maintainers = with maintainers; [ talyz ];
     mainProgram = "parsedmarc";
-    # https://github.com/domainaware/parsedmarc/issues/464
-    broken = lib.versionAtLeast msgraph-core.version "1.0.0";
   };
 }
