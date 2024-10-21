@@ -23,6 +23,15 @@ stdenv.mkDerivation {
     tail --lines "+$lines" "$src" | tar --extract --gzip --strip-components=1
   '';
 
+  patchPhase = ''
+    runHook prePatch
+
+    # Remove model from manufacturer name
+    sed --in-place 's/\(^\*Manufacturer: "YXWL\) [^"]*\("$\)/\1\2/' *.ppd
+
+    runHook postPatch
+  '';
+
   nativeBuildInputs = [ autoPatchelfHook ];
   buildInputs = [ cups ];
 
