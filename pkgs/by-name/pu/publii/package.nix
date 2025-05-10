@@ -6,6 +6,7 @@
   makeShellWrapper,
   wrapGAppsHook3,
   alsa-lib,
+  asar,
   at-spi2-atk,
   at-spi2-core,
   atk,
@@ -16,6 +17,7 @@
   glib,
   glibc,
   gtk3,
+  jq,
   libsecret,
   libgbm,
   musl,
@@ -35,6 +37,11 @@ stdenv.mkDerivation rec {
     hash = "sha256-VymAHQNv3N7Mqe8wiUfYawi1BooczLFClxuwaW8NetA=";
   };
 
+  packageJson = fetchurl {
+    url = "https://raw.githubusercontent.com/GetPublii/Publii/refs/tags/v.0.46.5-build-17089/package.json";
+    hash = "sha256-Xy1kbChZtm5BjS/HWhm2agQsQj1RSREwzp5JhHQg3X4=";
+  };
+
   dontConfigure = true;
   dontBuild = true;
   dontWrapGApps = true;
@@ -47,6 +54,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     alsa-lib
+    asar
     at-spi2-atk
     at-spi2-core
     atk
@@ -57,6 +65,7 @@ stdenv.mkDerivation rec {
     glib
     glibc
     gtk3
+    jq
     libsecret
     libgbm
     musl
@@ -69,6 +78,37 @@ stdenv.mkDerivation rec {
   unpackPhase = ''
     ar p $src data.tar.xz | tar xJ
   '';
+
+  prePatch = ''
+    asar extract opt/Publii/resources/app.asar app
+  '';
+
+  postPatch = ''
+    asar pack app opt/Publii/resources/app.asar \
+      --unpack "$(jq --raw-output '.build.asarUnpack | "{\(join(","))}"' ${packageJson})"
+    rm -r app
+  '';
+
+  patches = [
+    (builtins.toFile "publii-issue-1322.patch" ''
+      --- a/app/back-end/site.js
+      +++ b/app/back-end/site.js
+      @@ -96,4 +96,5 @@
+                   path.join(this.siteDir, 'input', 'themes', 'simple')
+               );
+      +        require('child_process').execFileSync('chmod', ['--recursive', 'u+w', path.join(this.siteDir, 'input', 'themes', 'simple')]);
+           }
+
+      --- a/app/back-end/themes.js
+      +++ b/app/back-end/themes.js
+      @@ -229,4 +229,5 @@
+                   path.join(this.sitePath, newTheme)
+               );
+      +        require('child_process').execFileSync('chmod', ['--recursive', 'u+w', path.join(this.sitePath, newTheme)]);
+
+               // Return new name
+    '')
+  ];
 
   installPhase = ''
     runHook preInstall
